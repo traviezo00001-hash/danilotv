@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reproductor de Streaming M3U</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
+</head>
+<body>
+
+    <header>
+        <h1>Mi Reproductor de Streaming</h1>
+    </header>
+
+    <main class="container">
+        
+        <div class="video-container">
+            <video id="player" controls autoplay playsinline></video>
+        </div>
+
+        <div class="controls">
+            <input type="text" id="searchInput" placeholder="Buscar..." aria-label="Buscar contenido">
+            <div class="filter-buttons">
+                <button class="active" data-filter="all">Todos</button>
+                <button data-filter="canales">Canales</button>
+                <button data-filter="peliculas">Películas</button>
+                <button data-filter="series">Series</button>
+            </div>
+        </div>
+
+        <div class="playlist-container">
+            <ul id="playlist">
+                </ul>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
