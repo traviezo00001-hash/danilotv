@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DaniloTV - Reproductor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 2.5rem;
+        }
+        
+        .video-container {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            background: linear-gradient(45deg, #FF416C, #FF4B2B);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .proxy-options {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            display: none;
+        }
+        
+        .loading {
+            background: rgba(255,193,7,0.2);
+            border-left: 4px solid #ffc107;
+        }
+        
+        .error {
+            background: rgba(220,53,69,0.2);
+            border-left: 4px solid #dc3545;
+        }
+        
+        .success {
+            background: rgba(40,167,69,0.2);
+            border-left: 4px solid #28a745;
+        }
+        
+        .solution-section {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 DaniloTV - Reproductor</h1>
+        
+        <div class="video-container">
+            <video id="videoPlayer" controls playsinline>
+                Tu navegador no soporta la reproducción de video.
+            </video>
+        </div>
+        
+        <div class="controls">
+            <button onclick="playVideo()">▶️ Reproducir</button>
+            <button onclick="pauseVideo()">⏸️ Pausar</button>
+            <button onclick="toggleMute()">🔇 Silenciar</button>
+            <button onclick="fullscreen()">⛶ Pantalla Completa</button>
+        </div>
+        
+        <div class="proxy-options">
+            <h3>🔧 Soluciones de CORS/HTTPS:</h3>
+            <div class="controls">
+                <button onclick="loadWithProxy('proxy1')">🔄 Proxy 1 (CORS Anywhere)</button>
+                <button onclick="loadWithProxy('proxy2')">🌐 Proxy 2 (All Origins)</button>
+                <button onclick="loadWithProxy('proxy3')">⚡ Proxy 3 (CORS Proxy)</button>
+                <button onclick="loadWithProxy('direct')">🎯 Intentar Directo</button>
+            </div>
+        </div>
+        
+        <div id="status" class="status"></div>
+        
+        <div class="solution-section">
+            <h3>💡 Si ninguna solución funciona:</h3>
+            <p>Puedes intentar estas alternativas:</p>
+            <div class="controls">
+                <button onclick="openInNewTab()">📂 Abrir en Nueva Pestaña</button>
+                <button onclick="downloadVideo()">💾 Descargar Video</button>
+                <button onclick="showEmbedCode()">📋 Mostrar Código Embed</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const videoPlayer = document.getElementById('videoPlayer');
+        const statusDiv = document.getElementById('status');
+        const originalUrl = 'http://flx.lat:8080/movie/LuisCruz6/389HREVXW/326141.mp4';
+        
+        // Diferentes proxies CORS
+        const proxies = {
+            proxy1: 'https://cors-anywhere.herokuapp.com/',
+            proxy2: 'https://api.allorigins.win/raw?url=',
+            proxy3: 'https://corsproxy.io/?',
+            direct: ''
+        };
+        
+        function showStatus(message, type) {
+            statusDiv.textContent = message;
+            statusDiv.className = 'status ' + type;
+            statusDiv.style.display = 'block';
+        }
+        
+        function loadWithProxy(proxyType) {
+            let videoUrl = originalUrl;
+            
+            if (proxyType !== 'direct') {
+                videoUrl = proxies[proxyType] + encodeURIComponent(originalUrl);
+            }
+            
+            showStatus(`🔄 Cargando video usando ${proxyType}...`, 'loading');
+            
+            // Limpiar fuente anterior
+            videoPlayer.src = '';
+            videoPlayer.load();
+            
+            // Esperar un momento antes de cargar la nueva fuente
+            setTimeout(() => {
+                videoPlayer.src = videoUrl;
+                videoPlayer.load();
+                
+                // Intentar reproducir después de cargar
+                const playAttempt = setInterval(() => {
+                    if (videoPlayer.readyState > 0) {
+                        videoPlayer.play().then(() => {
+                            showStatus('✅ ¡Video cargado correctamente!', 'success');
+                            clearInterval(playAttempt);
+                        }).catch(e => {
+                            console.log('Reproducción automática bloqueada, pero el video está cargado');
+                        });
+                    }
+                }, 500);
+                
+                // Timeout después de 10 segundos
+                setTimeout(() => {
+                    clearInterval(playAttempt);
+                    if (videoPlayer.readyState === 0) {
+                        showStatus('❌ Error: El video no pudo cargarse. Intenta con otro proxy.', 'error');
+                    }
+                }, 10000);
+                
+            }, 100);
+        }
+        
+        function playVideo() {
+            videoPlayer.play().catch(e => {
+                showStatus('❌ Error al reproducir: ' + e.message, 'error');
+            });
+        }
+        
+        function pauseVideo() {
+            videoPlayer.pause();
+        }
+        
+        function toggleMute() {
+            videoPlayer.muted = !videoPlayer.muted;
+            showStatus(videoPlayer.muted ? '🔇 Sonido silenciado' : '🔊 Sonido activado', 'success');
+        }
+        
+        function fullscreen() {
+            if (videoPlayer.requestFullscreen) {
+                videoPlayer.requestFullscreen();
+            } else if (videoPlayer.webkitRequestFullscreen) {
+                videoPlayer.webkitRequestFullscreen();
+            } else if (videoPlayer.msRequestFullscreen) {
+                videoPlayer.msRequestFullscreen();
+            }
+        }
+        
+        function openInNewTab() {
+            window.open(originalUrl, '_blank');
+        }
+        
+        function downloadVideo() {
+            const link = document.createElement('a');
+            link.href = originalUrl;
+            link.download = 'video.mp4';
+            link.target = '_blank';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        function showEmbedCode() {
+            const embedCode = `<video width="100%" controls>
+    <source src="${originalUrl}" type="video/mp4">
+    Tu navegador no soporta video HTML5.
+</video>`;
+            
+            showStatus(`📋 Código embed para usar en otros sitios:\n\n${embedCode}`, 'success');
+        }
+        
+        // Intentar cargar con proxy al iniciar
+        window.addEventListener('load', () => {
+            loadWithProxy('proxy1');
+        });
+        
+        // Manejar errores del video
+        videoPlayer.addEventListener('error', (e) => {
+            console.error('Error del video:', e);
+            showStatus('❌ Error al cargar el video. Intenta con otro proxy.', 'error');
+        });
+        
+        videoPlayer.addEventListener('canplay', () => {
+            showStatus('✅ Video listo para reproducir', 'success');
+        });
+    </script>
+</body>
+</html>
