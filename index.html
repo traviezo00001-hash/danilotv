@@ -3,38 +3,501 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reproductor de Streaming M3U</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
+    <title>Reproductor de Películas Rápido</title>
+    <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: #fff;
+            min-height: 100vh;
+            padding: 15px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+        }
+        
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+        
+        .search-container {
+            margin: 15px 0;
+        }
+        
+        #search {
+            width: 100%;
+            max-width: 400px;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-size: 0.9rem;
+        }
+        
+        .main-content {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .player-container {
+            flex: 2;
+            min-width: 300px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            padding: 15px;
+        }
+        
+        .video-js {
+            width: 100%;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .custom-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .control-btn {
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .movie-info {
+            margin-top: 12px;
+        }
+        
+        .movie-info h2 {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+        }
+        
+        .movies-list {
+            flex: 1;
+            min-width: 220px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            padding: 15px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .movies-list h2 {
+            margin-bottom: 12px;
+            text-align: center;
+            font-size: 1.2rem;
+        }
+        
+        .movie-item {
+            display: flex;
+            gap: 8px;
+            padding: 8px;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .movie-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .movie-item img {
+            width: 50px;
+            height: 70px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        
+        .movie-details {
+            flex: 1;
+        }
+        
+        .movie-title {
+            font-weight: bold;
+            margin-bottom: 4px;
+            font-size: 0.9rem;
+        }
+        
+        .movie-year {
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+        
+        .active {
+            border: 2px solid #ff6b6b;
+            background: rgba(255, 107, 107, 0.15);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 15px;
+            font-style: italic;
+        }
+        
+        .error {
+            color: #ff6b6b;
+            text-align: center;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            margin: 10px 0;
+            font-size: 0.9rem;
+        }
+        
+        .speed-display {
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 25px;
+            padding: 15px;
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .player-container, .movies-list {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
-
-    <header>
-        <h1>Mi Reproductor de Streaming</h1>
-    </header>
-
-    <main class="container">
+    <div class="container">
+        <header>
+            <h1>🎬 CineStream Rápido</h1>
+            <p>Reproducción optimizada y rápida</p>
+            <div class="search-container">
+                <input type="text" id="search" placeholder="Buscar películas...">
+            </div>
+        </header>
         
-        <div class="video-container">
-            <video id="player" controls autoplay playsinline></video>
-        </div>
-
-        <div class="controls">
-            <input type="text" id="searchInput" placeholder="Buscar..." aria-label="Buscar contenido">
-            <div class="filter-buttons">
-                <button class="active" data-filter="all">Todos</button>
-                <button data-filter="canales">Canales</button>
-                <button data-filter="peliculas">Películas</button>
-                <button data-filter="series">Series</button>
+        <div class="main-content">
+            <div class="player-container">
+                <video
+                    id="my-video"
+                    class="video-js"
+                    controls
+                    preload="auto"
+                    width="640"
+                    height="264"
+                    poster="https://image.tmdb.org/t/p/w600_and_h900_bestv2/qXpK30szZ0iBtsr4uAPmZzHtjuu.jpg"
+                    data-setup='{"playbackRates": [0.5, 1, 1.5, 2], "fluid": true}'
+                >
+                    <p class="vjs-no-js">
+                        Para ver este video, por favor habilita JavaScript y considera actualizar a un navegador web que
+                        <a href="https://videojs.com/html5-video-support/" target="_blank">soporte video HTML5</a>
+                    </p>
+                </video>
+                
+                <div class="custom-controls">
+                    <button class="control-btn" onclick="skipBackward()">↺ -10s</button>
+                    <button class="control-btn" onclick="togglePlay()">▶/❚❚</button>
+                    <button class="control-btn" onclick="skipForward()">↻ +10s</button>
+                    <button class="control-btn" onclick="changeSpeed(0.25)">+ Vel</button>
+                    <button class="control-btn" onclick="changeSpeed(-0.25)">- Vel</button>
+                    <div class="speed-display">Vel: 1.0x</div>
+                </div>
+                
+                <div class="movie-info">
+                    <h2>Selecciona una película de la lista</h2>
+                    <p>Utiliza la lista de la derecha para elegir una película y comenzar a reproducir.</p>
+                </div>
+            </div>
+            
+            <div class="movies-list">
+                <h2>Películas Disponibles</h2>
+                <div id="movies-container">
+                    <div class="loading">Cargando películas...</div>
+                </div>
             </div>
         </div>
+        
+        <footer>
+            <p>© 2023 CineStream Rápido - Todos los derechos reservados</p>
+        </footer>
+    </div>
 
-        <div class="playlist-container">
-            <ul id="playlist">
-                </ul>
-        </div>
-    </main>
+    <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
+    <script>
+        // Variables globales
+        let player;
+        let currentMovie = null;
+        let allMovies = [];
 
-    <script src="script.js"></script>
+        // Inicializar el reproductor cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar el reproductor Video.js con configuración optimizada
+            player = videojs('my-video', {
+                html5: {
+                    vhs: {
+                        overrideNative: true
+                    }
+                },
+                liveui: true,
+                preload: 'metadata'
+            });
+            
+            // Precargar solo metadatos para mayor velocidad
+            player.preload('metadata');
+            
+            // Cargar las películas
+            loadMoviesFromJSON();
+            
+            // Configurar la búsqueda
+            setupSearch();
+            
+            // Manejar errores de reproducción
+            player.on('error', function() {
+                const error = player.error();
+                console.error('Error de video:', error);
+                document.querySelector('.movie-info p').textContent = 'Error al cargar el video. Intentando solución alternativa...';
+                
+                // Intentar solución alternativa si hay un error
+                if (currentMovie) {
+                    setTimeout(() => tryAlternativePlayback(currentMovie), 1000);
+                }
+            });
+        });
+
+        // Intentar reproducción alternativa
+        function tryAlternativePlayback(movie) {
+            document.querySelector('.movie-info p').textContent = 'Probando solución alternativa...';
+            
+            // Intentar con el proxy PHP
+            player.src({
+                src: 'proxy.php?url=' + encodeURIComponent(movie.url),
+                type: 'video/mp4'
+            });
+            
+            player.play().catch(error => {
+                console.error('Error con proxy:', error);
+                document.querySelector('.movie-info p').textContent = 'Error: El video no puede reproducirse.';
+            });
+        }
+
+        // Cargar películas desde el archivo JSON
+        async function loadMoviesFromJSON() {
+            try {
+                const response = await fetch('movies.json');
+                
+                if (!response.ok) {
+                    throw new Error('No se pudo cargar el archivo de películas');
+                }
+                
+                const moviesData = await response.json();
+                allMovies = moviesData;
+                
+                // Cargar las películas en la lista
+                loadMovies(allMovies);
+            } catch (error) {
+                console.error('Error al cargar las películas:', error);
+                document.getElementById('movies-container').innerHTML = 
+                    '<div class="error">Error al cargar las películas. Usando datos de ejemplo.</div>';
+                
+                // Cargar datos de ejemplo como fallback
+                loadExampleMovies();
+            }
+        }
+
+        // Cargar películas de ejemplo como fallback
+        function loadExampleMovies() {
+            const exampleMovies = [
+                {
+                    "title": "Número desconocido: Falsa identidad en el instituto (2025)",
+                    "url": "http://195.66.210.10:80/movie/DanielS24/GRQBX/616415.mp4",
+                    "logo": "https://image.tmdb.org/t/p/w600_and_h900_bestv2/qXpK30szZ0iBtsr4uAPmZzHtjuu.jpg"
+                },
+                {
+                    "title": "¿Y dónde está el policía? (2025)",
+                    "url": "http://195.66.210.10:80/movie/DanielS24/GRQBX/616357.mp4",
+                    "logo": "https://image.tmdb.org/t/p/w600_and_h900_bestv2/6TJyHMmWfkjs7NLX7jrohc87AD5.jpg"
+                },
+                {
+                    "title": "En la linea de fuego (2025)",
+                    "url": "http://195.66.210.10:80/movie/DanielS24/GRQBX/616356.mp4",
+                    "logo": "https://image.tmdb.org/t/p/w600_and_h900_bestv2/wSQYF6sckhXixTtwgeEl3v87Cic.jpg"
+                }
+            ];
+            
+            allMovies = exampleMovies;
+            loadMovies(exampleMovies);
+        }
+
+        // Cargar las películas en la lista
+        function loadMovies(moviesData) {
+            const moviesContainer = document.getElementById('movies-container');
+            
+            if (moviesData.length === 0) {
+                moviesContainer.innerHTML = '<div class="loading">No se encontraron películas</div>';
+                return;
+            }
+            
+            moviesContainer.innerHTML = '';
+            
+            // Limitar a 50 películas para mejor rendimiento
+            const displayMovies = moviesData.slice(0, 50);
+            
+            displayMovies.forEach(movie => {
+                const movieElement = createMovieElement(movie);
+                moviesContainer.appendChild(movieElement);
+            });
+        }
+
+        // Crear elemento de película para la lista
+        function createMovieElement(movie) {
+            const movieItem = document.createElement('div');
+            movieItem.classList.add('movie-item');
+            
+            // Extraer el año del título
+            const yearMatch = movie.title.match(/\((\d{4})\)/);
+            const year = yearMatch ? yearMatch[1] : 'N/A';
+            
+            // Limpiar el título (eliminar el año)
+            let cleanTitle = movie.title.replace(/\(\d{4}\)/, '').trim();
+            
+            // Crear contenido HTML para el elemento de película
+            movieItem.innerHTML = `
+                <img src="${movie.logo}" alt="${cleanTitle}" onerror="this.src='https://via.placeholder.com/50x70/333/fff?text=Imagen'">
+                <div class="movie-details">
+                    <div class="movie-title">${cleanTitle}</div>
+                    <div class="movie-year">${year}</div>
+                </div>
+            `;
+            
+            // Añadir evento de clic para reproducir la película
+            movieItem.addEventListener('click', function() {
+                playMovie(movie);
+                
+                // Resaltar la película seleccionada
+                document.querySelectorAll('.movie-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                movieItem.classList.add('active');
+            });
+            
+            return movieItem;
+        }
+
+        // Reproducir una película
+        function playMovie(movie) {
+            currentMovie = movie;
+            
+            // Limpiar el título (eliminar el año)
+            const cleanTitle = movie.title.replace(/\(\d{4}\)/, '').trim();
+            
+            // Actualizar la información de la película
+            document.querySelector('.movie-info h2').textContent = cleanTitle;
+            document.querySelector('.movie-info p').textContent = 'Cargando...';
+            
+            // Usar el proxy PHP para evitar problemas de CORS y formato
+            const proxyUrl = 'proxy.php?url=' + encodeURIComponent(movie.url);
+            
+            // Configurar la fuente del video
+            player.src({
+                src: proxyUrl,
+                type: 'video/mp4'
+            });
+            
+            // Actualizar el poster
+            player.poster(movie.logo);
+            
+            // Intentar reproducir
+            const playPromise = player.play();
+            
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    document.querySelector('.movie-info p').textContent = 'Reproduciendo...';
+                }).catch(error => {
+                    console.error('Error al reproducir:', error);
+                    document.querySelector('.movie-info p').textContent = 'Click en play para reproducir';
+                });
+            }
+        }
+
+        // Configurar la funcionalidad de búsqueda
+        function setupSearch() {
+            const searchInput = document.getElementById('search');
+            
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                
+                if (searchTerm.length > 2) {
+                    const filteredMovies = allMovies.filter(movie => 
+                        movie.title.toLowerCase().includes(searchTerm)
+                    );
+                    loadMovies(filteredMovies);
+                } else if (searchTerm.length === 0) {
+                    loadMovies(allMovies);
+                }
+            });
+        }
+
+        // Funciones de control personalizadas
+        function skipBackward() {
+            player.currentTime(Math.max(0, player.currentTime() - 10));
+        }
+        
+        function skipForward() {
+            player.currentTime(Math.min(player.duration(), player.currentTime() + 10));
+        }
+        
+        function togglePlay() {
+            if (player.paused()) {
+                player.play();
+            } else {
+                player.pause();
+            }
+        }
+        
+        function changeSpeed(delta) {
+            const currentSpeed = player.playbackRate();
+            const newSpeed = Math.max(0.5, Math.min(4, currentSpeed + delta));
+            player.playbackRate(newSpeed);
+            document.querySelector('.speed-display').textContent = `Vel: ${newSpeed.toFixed(2)}x`;
+        }
+    </script>
 </body>
 </html>
